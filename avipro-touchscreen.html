@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AviPro — Experiencia Interactiva de Stand</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  body { background: #f4f4f2; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem; }
+  #app { max-width: 680px; width: 100%; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #085041;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --text: #2C2C2A;
+    --text-muted: #5F5E5A;
+    --white: #ffffff;
+    --border: rgba(0,0,0,0.1);
+  }
+
+  .screen { display: none; flex-direction: column; align-items: center; padding: 2.5rem 2rem; min-height: 540px; border-radius: 20px; }
+  .screen.active { display: flex; }
+
+  /* WELCOME */
+  #screen-welcome { background: var(--green-dark); gap: 1.5rem; justify-content: center; box-shadow: 0 8px 40px rgba(8,80,65,0.18); }
+  .logo-circle { width: 84px; height: 84px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; }
+  .logo-circle i { font-size: 38px; color: white; }
+  .welcome-tagline { font-size: 12px; color: #5DCAA5; text-align: center; letter-spacing: 0.1em; text-transform: uppercase; }
+  .welcome-title { font-size: 34px; font-weight: 600; color: white; text-align: center; line-height: 1.2; }
+  .welcome-sub { font-size: 15px; color: #9FE1CB; text-align: center; max-width: 320px; line-height: 1.7; }
+  .btn-primary { background: var(--green); color: white; border: none; padding: 14px 40px; border-radius: 50px; font-size: 15px; font-weight: 500; cursor: pointer; transition: transform 0.15s, background 0.15s; }
+  .btn-primary:hover { background: #18876A; transform: scale(1.03); }
+  .btn-outline { background: transparent; color: #9FE1CB; border: 1.5px solid #5DCAA5; padding: 12px 30px; border-radius: 50px; font-size: 14px; cursor: pointer; transition: all 0.15s; }
+  .btn-outline:hover { background: rgba(93,202,165,0.12); }
+
+  /* MENU */
+  #screen-menu { background: var(--white); gap: 1.2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .menu-header { text-align: center; margin-bottom: 0.3rem; }
+  .menu-header h2 { font-size: 20px; font-weight: 600; color: var(--text); }
+  .menu-header p { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+  .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; width: 100%; }
+  .menu-card { background: #fafafa; border: 0.5px solid var(--border); border-radius: 16px; padding: 1.5rem 1.2rem; cursor: pointer; transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  .menu-card:hover { transform: translateY(-3px); border-color: var(--green); box-shadow: 0 4px 16px rgba(29,158,117,0.12); }
+  .menu-card .card-icon { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+  .menu-card .card-icon i { font-size: 24px; }
+  .card-green { background: var(--green-light); }
+  .card-green i { color: var(--green-dark); }
+  .card-amber { background: var(--amber-light); }
+  .card-amber i { color: var(--amber); }
+  .menu-card h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .menu-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .menu-back { font-size: 13px; color: var(--text-muted); cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; gap: 5px; transition: color 0.15s; }
+  .menu-back:hover { color: var(--green); }
+
+  /* TRIVIA */
+  #screen-trivia { background: var(--white); gap: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .trivia-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .trivia-badge { background: var(--green-light); color: var(--green-dark); font-size: 12px; padding: 4px 12px; border-radius: 20px; font-weight: 600; }
+  .trivia-score { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .progress-bar { width: 100%; height: 5px; background: #E1F5EE; border-radius: 5px; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 5px; transition: width 0.4s ease; }
+  .trivia-question { font-size: 17px; font-weight: 500; color: var(--text); text-align: center; line-height: 1.6; padding: 0.5rem 0; width: 100%; }
+  .trivia-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+  .trivia-btn { background: var(--white); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 18px; font-size: 14px; color: var(--text); cursor: pointer; text-align: left; transition: all 0.15s; }
+  .trivia-btn:hover:not(:disabled) { border-color: var(--green); background: var(--green-light); }
+  .trivia-btn.correct { background: var(--green-light); border-color: var(--green); color: var(--green-dark); font-weight: 600; }
+  .trivia-btn.wrong { background: #FCEBEB; border-color: #E24B4A; color: #A32D2D; }
+  .trivia-btn:disabled { cursor: default; }
+  .trivia-feedback { font-size: 13px; text-align: center; min-height: 20px; font-weight: 500; }
+
+  /* MEMORIA */
+  #screen-memoria { background: var(--white); gap: 1rem; align-items: flex-start; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .memoria-header { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+  .memoria-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+  .mem-card { aspect-ratio: 1; border-radius: 12px; border: 0.5px solid var(--border); background: var(--green-dark); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
+  .mem-card:hover:not(.matched) { transform: scale(1.04); }
+  .mem-card.flipped { background: var(--white); border-color: var(--green); }
+  .mem-card.matched { background: var(--green-light); border-color: var(--green); cursor: default; }
+  .mem-card .front { color: white; font-size: 22px; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+  .mem-card.flipped .front, .mem-card.matched .front { display: none; }
+  .mem-card .back { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 3px; width: 100%; height: 100%; padding: 6px; }
+  .mem-card.flipped .back, .mem-card.matched .back { display: flex; }
+  .mem-card .back i { font-size: 26px; color: var(--green); }
+  .mem-card.matched .back i { color: var(--green-dark); }
+  .mem-card .back span { font-size: 9px; color: var(--text-muted); text-align: center; font-weight: 600; }
+
+  /* PRODUCTOS */
+  #screen-productos { background: var(--white); gap: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .prod-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+  .prod-card { background: #fafafa; border: 0.5px solid var(--border); border-radius: 14px; padding: 1rem; display: flex; flex-direction: column; gap: 8px; }
+  .prod-tag { font-size: 10px; background: var(--green-light); color: var(--green-dark); padding: 3px 10px; border-radius: 20px; font-weight: 600; width: fit-content; }
+  .prod-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .prod-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* REGISTRO */
+  #screen-registro { background: var(--white); gap: 1rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .registro-title { font-size: 20px; font-weight: 600; color: var(--text); text-align: center; }
+  .registro-sub { font-size: 14px; color: var(--text-muted); text-align: center; }
+  .form-group { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 0.5px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.15s; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--green); }
+  .prize-card { background: var(--amber-light); border: 0.5px solid #EF9F27; border-radius: 12px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; width: 100%; }
+  .prize-card i { font-size: 26px; color: var(--amber); flex-shrink: 0; }
+  .prize-card p { font-size: 13px; color: #633806; line-height: 1.5; }
+
+  /* RESULTADO */
+  #screen-resultado { background: var(--white); justify-content: center; gap: 1.5rem; box-shadow: 0 4px 24px rgba(0,0,0,0.07); }
+  .result-icon { width: 76px; height: 76px; border-radius: 50%; background: var(--green-light); display: flex; align-items: center; justify-content: center; }
+  .result-icon i { font-size: 34px; color: var(--green); }
+  .result-title { font-size: 22px; font-weight: 600; color: var(--text); text-align: center; }
+  .result-sub { font-size: 14px; color: var(--text-muted); text-align: center; max-width: 290px; line-height: 1.7; }
+  .result-score { font-size: 42px; font-weight: 600; color: var(--green); }
+  .result-label { font-size: 13px; color: var(--text-muted); }
+
+  /* FOOTER MARCA */
+  .powered-by { text-align: center; margin-top: 1.2rem; font-size: 11px; color: #888; letter-spacing: 0.05em; }
+  .powered-by span { color: var(--green); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- WELCOME -->
+  <div class="screen active" id="screen-welcome">
+    <div class="logo-circle"><i class="ti ti-feather"></i></div>
+    <p class="welcome-tagline">Soluciones veterinarias avícolas</p>
+    <h1 class="welcome-title">Bienvenido al stand de AviPro</h1>
+    <p class="welcome-sub">Descubre cómo protegemos la salud de tus aves y optimizamos tu producción.</p>
+    <button class="btn-primary" onclick="goTo('menu')">Comenzar experiencia</button>
+    <button class="btn-outline" onclick="goTo('registro')">Registrarme para el sorteo</button>
+  </div>
+
+  <!-- MENU -->
+  <div class="screen" id="screen-menu">
+    <div class="menu-header">
+      <h2>¿Qué quieres explorar hoy?</h2>
+      <p>Elige una actividad para comenzar</p>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="goTo('trivia')">
+        <div class="card-icon card-green"><i class="ti ti-brain"></i></div>
+        <h3>Trivia AviPro</h3>
+        <p>Pon a prueba tu conocimiento avícola y gana puntos</p>
+      </div>
+      <div class="menu-card" onclick="startMemoria()">
+        <div class="card-icon card-amber"><i class="ti ti-layout-grid"></i></div>
+        <h3>Juego de memoria</h3>
+        <p>Encuentra los pares de nuestros productos estrella</p>
+      </div>
+      <div class="menu-card" onclick="goTo('productos')">
+        <div class="card-icon card-green"><i class="ti ti-flask"></i></div>
+        <h3>Nuestros productos</h3>
+        <p>Conoce nuestra línea completa de soluciones</p>
+      </div>
+      <div class="menu-card" onclick="goTo('registro')">
+        <div class="card-icon card-amber"><i class="ti ti-gift"></i></div>
+        <h3>Sorteo exclusivo</h3>
+        <p>Regístrate y participa por premios en el evento</p>
+      </div>
+    </div>
+    <div class="menu-back" onclick="goTo('welcome')"><i class="ti ti-arrow-left"></i> Volver al inicio</div>
+  </div>
+
+  <!-- TRIVIA -->
+  <div class="screen" id="screen-trivia">
+    <div class="trivia-header">
+      <span class="trivia-badge">Trivia AviPro</span>
+      <span class="trivia-score" id="trivia-score">Puntos: 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="trivia-progress" style="width:0%"></div></div>
+    <p class="trivia-question" id="trivia-q">Cargando...</p>
+    <div class="trivia-options" id="trivia-opts"></div>
+    <p class="trivia-feedback" id="trivia-fb"></p>
+    <div class="menu-back" onclick="goTo('menu')"><i class="ti ti-arrow-left"></i> Volver al menú</div>
+  </div>
+
+  <!-- MEMORIA -->
+  <div class="screen" id="screen-memoria">
+    <div class="memoria-header">
+      <span class="trivia-badge">Juego de memoria</span>
+      <span class="trivia-score" id="mem-info">Intentos: 0</span>
+    </div>
+    <div class="memoria-grid" id="mem-grid"></div>
+    <div class="menu-back" onclick="goTo('menu')"><i class="ti ti-arrow-left"></i> Volver al menú</div>
+  </div>
+
+  <!-- PRODUCTOS -->
+  <div class="screen" id="screen-productos">
+    <div class="menu-header">
+      <h2>Línea de productos AviPro</h2>
+      <p>Soluciones diseñadas para cada etapa productiva</p>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card">
+        <span class="prod-tag">Vacunas</span>
+        <p class="prod-name">AviShield Pro</p>
+        <p class="prod-desc">Protección de amplio espectro contra los principales patógenos avícolas.</p>
+      </div>
+      <div class="prod-card">
+        <span class="prod-tag">Nutrición</span>
+        <p class="prod-name">GrowMax Aves</p>
+        <p class="prod-desc">Suplemento nutricional para maximizar el desarrollo y conversión alimentaria.</p>
+      </div>
+      <div class="prod-card">
+        <span class="prod-tag">Bioseguridad</span>
+        <p class="prod-name">BioClean 360</p>
+        <p class="prod-desc">Desinfectante de alta eficacia para galpones, equipos y superficies.</p>
+      </div>
+      <div class="prod-card">
+        <span class="prod-tag">Diagnóstico</span>
+        <p class="prod-name">AviTest Kit</p>
+        <p class="prod-desc">Kit de diagnóstico rápido para detección temprana de enfermedades.</p>
+      </div>
+    </div>
+    <button class="btn-primary" style="margin-top:0.5rem;" onclick="goTo('registro')">Quiero más información</button>
+    <div class="menu-back" onclick="goTo('menu')"><i class="ti ti-arrow-left"></i> Volver al menú</div>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="screen" id="screen-registro">
+    <p class="registro-title">Regístrate y participa</p>
+    <p class="registro-sub">Déjanos tus datos y entra al sorteo exclusivo del evento</p>
+    <div class="prize-card">
+      <i class="ti ti-trophy"></i>
+      <p>Premio: Kit completo AviPro valorado en <strong>USD 500</strong> + asesoría técnica personalizada.</p>
+    </div>
+    <div class="form-group">
+      <label>Nombre completo</label>
+      <input type="text" placeholder="Tu nombre" id="reg-nombre" />
+    </div>
+    <div class="form-group">
+      <label>Empresa</label>
+      <input type="text" placeholder="Nombre de tu empresa" id="reg-empresa" />
+    </div>
+    <div class="form-group">
+      <label>País</label>
+      <select id="reg-pais">
+        <option value="">Selecciona tu país</option>
+        <option>Colombia</option><option>Argentina</option><option>Brasil</option>
+        <option>Perú</option><option>México</option><option>Ecuador</option><option>Otro</option>
+      </select>
+    </div>
+    <button class="btn-primary" style="width:100%;" onclick="registrar()">Participar en el sorteo</button>
+    <div class="menu-back" onclick="goTo('menu')"><i class="ti ti-arrow-left"></i> Volver al menú</div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div class="screen" id="screen-resultado">
+    <div class="result-icon"><i class="ti ti-check"></i></div>
+    <p class="result-label" id="result-label">Tu puntaje final</p>
+    <p class="result-score" id="result-pts">0</p>
+    <p class="result-title" id="result-title">¡Excelente!</p>
+    <p class="result-sub" id="result-sub">Gracias por participar en la experiencia AviPro.</p>
+    <button class="btn-primary" onclick="reiniciar()">Volver al inicio</button>
+  </div>
+
+  <p class="powered-by">Experiencia diseñada para <span>Grupo Seres</span> · Demo por David Mona Corrales</p>
+</div>
+
+<script>
+const triviaData = [
+  { q: "¿Cuál es la principal causa de pérdidas productivas en granjas avícolas a nivel mundial?", opts: ["Estrés por calor", "Enfermedades infecciosas", "Problemas nutricionales", "Manejo inadecuado"], ans: 1 },
+  { q: "¿A qué temperatura ideal se recomienda mantener un galpón en la etapa de cría?", opts: ["15–18 °C", "20–22 °C", "30–33 °C", "38–40 °C"], ans: 2 },
+  { q: "¿Qué significa bioseguridad en una granja avícola?", opts: ["Usar medicamentos preventivos", "Conjunto de medidas para prevenir el ingreso de enfermedades", "Controlar el peso de las aves", "Vacunar semanalmente"], ans: 1 },
+  { q: "¿Cuál de estos patógenos es responsable del Newcastle en aves?", opts: ["Bacteria E. coli", "Paramyxovirus aviar", "Salmonella", "Aspergillus"], ans: 1 },
+  { q: "¿Qué producto AviPro se usa para protección de amplio espectro?", opts: ["GrowMax Aves", "BioClean 360", "AviShield Pro", "AviTest Kit"], ans: 2 }
+];
+
+const memoriaItems = [
+  { icon: "ti-feather", label: "AviShield" },
+  { icon: "ti-flask", label: "BioClean" },
+  { icon: "ti-heart", label: "GrowMax" },
+  { icon: "ti-microscope", label: "AviTest" },
+  { icon: "ti-shield", label: "Bioseg." },
+  { icon: "ti-star", label: "Premio" },
+  { icon: "ti-leaf", label: "Nutrición" },
+  { icon: "ti-certificate", label: "Calidad" }
+];
+
+let triviaIdx = 0, triviaScore = 0;
+let memFlipped = [], memMatched = 0, memAttempts = 0, memLock = false, memCards = [];
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  if (id === 'trivia') loadTrivia();
+}
+
+function loadTrivia() {
+  triviaIdx = 0; triviaScore = 0;
+  document.getElementById('trivia-score').textContent = 'Puntos: 0';
+  showTrivia();
+}
+
+function showTrivia() {
+  if (triviaIdx >= triviaData.length) {
+    document.getElementById('result-label').textContent = 'Tu puntaje final';
+    document.getElementById('result-pts').textContent = triviaScore + ' / ' + triviaData.length;
+    document.getElementById('result-title').textContent = triviaScore >= 4 ? '¡Experto avícola!' : triviaScore >= 2 ? '¡Muy bien!' : '¡Sigue aprendiendo!';
+    document.getElementById('result-sub').textContent = 'Completaste la trivia AviPro. ¡Regístrate para participar en el sorteo!';
+    goTo('resultado'); return;
+  }
+  const q = triviaData[triviaIdx];
+  document.getElementById('trivia-progress').style.width = Math.round((triviaIdx / triviaData.length) * 100) + '%';
+  document.getElementById('trivia-q').textContent = q.q;
+  document.getElementById('trivia-fb').textContent = '';
+  document.getElementById('trivia-fb').style.color = '';
+  const opts = document.getElementById('trivia-opts');
+  opts.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'trivia-btn';
+    b.textContent = o;
+    b.onclick = () => answerTrivia(i, q.ans);
+    opts.appendChild(b);
+  });
+}
+
+function answerTrivia(sel, ans) {
+  const btns = document.querySelectorAll('.trivia-btn');
+  btns.forEach(b => b.disabled = true);
+  btns[ans].classList.add('correct');
+  const fb = document.getElementById('trivia-fb');
+  if (sel === ans) {
+    triviaScore++;
+    fb.textContent = '✓ ¡Correcto! +1 punto';
+    fb.style.color = '#085041';
+  } else {
+    btns[sel].classList.add('wrong');
+    fb.textContent = '✗ Respuesta incorrecta.';
+    fb.style.color = '#A32D2D';
+  }
+  document.getElementById('trivia-score').textContent = 'Puntos: ' + triviaScore;
+  triviaIdx++;
+  setTimeout(showTrivia, 1400);
+}
+
+function startMemoria() {
+  memFlipped = []; memMatched = 0; memAttempts = 0; memLock = false;
+  memCards = [...memoriaItems, ...memoriaItems].sort(() => Math.random() - 0.5);
+  goTo('memoria');
+  const grid = document.getElementById('mem-grid');
+  grid.innerHTML = '';
+  memCards.forEach((c, i) => {
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    card.innerHTML = `<div class="front"><i class="ti ti-question-mark"></i></div><div class="back"><i class="ti ${c.icon}"></i><span>${c.label}</span></div>`;
+    card.onclick = () => flipCard(i, card);
+    grid.appendChild(card);
+  });
+}
+
+function flipCard(idx, card) {
+  if (memLock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+  card.classList.add('flipped');
+  memFlipped.push({ idx, card });
+  if (memFlipped.length === 2) {
+    memLock = true; memAttempts++;
+    document.getElementById('mem-info').textContent = 'Intentos: ' + memAttempts;
+    const [a, b] = memFlipped;
+    if (memCards[a.idx].icon === memCards[b.idx].icon) {
+      a.card.classList.add('matched'); b.card.classList.add('matched');
+      memMatched++; memFlipped = []; memLock = false;
+      if (memMatched === memoriaItems.length) {
+        setTimeout(() => {
+          document.getElementById('result-label').textContent = 'Completado en';
+          document.getElementById('result-pts').textContent = memAttempts + ' intentos';
+          document.getElementById('result-title').textContent = memAttempts <= 10 ? '¡Memoria increíble!' : '¡Lo lograste!';
+          document.getElementById('result-sub').textContent = 'Encontraste todos los pares. ¡Regístrate para el sorteo!';
+          goTo('resultado');
+        }, 700);
+      }
+    } else {
+      setTimeout(() => {
+        a.card.classList.remove('flipped'); b.card.classList.remove('flipped');
+        memFlipped = []; memLock = false;
+      }, 900);
+    }
+  }
+}
+
+function registrar() {
+  const n = document.getElementById('reg-nombre').value.trim();
+  const e = document.getElementById('reg-empresa').value.trim();
+  const p = document.getElementById('reg-pais').value;
+  if (!n || !e || !p) { alert('Por favor completa todos los campos.'); return; }
+  document.getElementById('result-label').textContent = '';
+  document.getElementById('result-pts').textContent = '🎉';
+  document.getElementById('result-title').textContent = '¡Ya estás participando!';
+  document.getElementById('result-sub').textContent = 'Gracias ' + n + '. Te contactaremos si eres el ganador del kit AviPro.';
+  goTo('resultado');
+}
+
+function reiniciar() { goTo('welcome'); }
+</script>
+</body>
+</html>
